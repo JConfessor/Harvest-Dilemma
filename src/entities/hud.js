@@ -18,11 +18,22 @@ export default class HUD extends Phaser.GameObjects.Container {
 
   dialogBox;
   dialogText;
+  dialogBoxElements; // Armazena referências às partes da caixa de diálogo
 
   confirmBox;
   confirmText;
   yesText;
   noText;
+
+  storeBox;
+  storeText;
+  storeOptions = [
+    "Auto regar/colher (1000 moedas)",
+    "Cuidar do solo +10% (250 moedas)",
+    "Fechar",
+  ];
+  selectedStoreOption = 0;
+  storeOptionTexts = [];
 
   constructor(scene, x, y) {
     super(scene, x, y);
@@ -32,16 +43,17 @@ export default class HUD extends Phaser.GameObjects.Container {
     this.createHud();
     this.createDialogBox();
     this.createConfirmDialog();
+    this.createStoreMenu();
   }
 
   createHud() {
-    this.conteudo = this.add(new Phaser.GameObjects.Container(this.scene));
-    this.conteudo.setDepth(10);
-    this.conteudo.setScrollFactor(0);
-
     const tile = CONFIG.TILE_SIZE;
     const widthDialog = 175;
     const heightDialog = 2 * tile;
+
+    this.conteudo = this.add(new Phaser.GameObjects.Container(this.scene));
+    this.conteudo.setDepth(10);
+    this.conteudo.setScrollFactor(0);
 
     this.conteudo.add([
       this.scene.add.image(0, 0, "hudContainer", "dialog_topleft"),
@@ -98,10 +110,8 @@ export default class HUD extends Phaser.GameObjects.Container {
   }
 
   createDialogBox() {
-    // A caixa inicia com um tamanho fixo mas será ajustada após definir o texto.
     const w = 200;
     const h = 60;
-
     const x = this.scene.cameras.main.width - w / 2 - 10;
     const y = 30;
 
@@ -110,21 +120,6 @@ export default class HUD extends Phaser.GameObjects.Container {
       .setDepth(100)
       .setScrollFactor(0);
     container.setVisible(false);
-
-    // Criando bordas
-    this.dialogBG = {
-      w,
-      h,
-      topLeft: null,
-      top: null,
-      topRight: null,
-      left: null,
-      center: null,
-      right: null,
-      bottomLeft: null,
-      bottom: null,
-      bottomRight: null,
-    };
 
     const topLeft = this.scene.add
       .image(-w / 2, -h / 2, "hudContainer", "dialog_topleft")
@@ -195,13 +190,10 @@ export default class HUD extends Phaser.GameObjects.Container {
   }
 
   adjustDialogBoxSize() {
-    // Ajustar o tamanho da caixa após definir o texto, baseado na altura do texto
-    const padding = 40; // algum padding
     let textHeight = this.dialogText.getBounds().height;
     let textWidth = this.dialogText.getBounds().width;
-
     const w = Math.max(200, textWidth + 60);
-    const h = Math.max(60, textHeight + padding);
+    const h = Math.max(60, textHeight + 40);
 
     const {
       topLeft,
@@ -215,7 +207,6 @@ export default class HUD extends Phaser.GameObjects.Container {
       bottomRight,
     } = this.dialogBoxElements;
 
-    // Redimensionar as partes da caixa
     topLeft.setPosition(-w / 2, -h / 2);
     top.setPosition(-w / 2 + 16, -h / 2).setDisplaySize(w - 32, 16);
     topRight.setPosition(w / 2, -h / 2);
@@ -225,8 +216,6 @@ export default class HUD extends Phaser.GameObjects.Container {
     bottomLeft.setPosition(-w / 2, h / 2);
     bottom.setPosition(-w / 2 + 16, h / 2).setDisplaySize(w - 32, 16);
     bottomRight.setPosition(w / 2, h / 2);
-
-    // Recentralizar texto
     this.dialogText.setWordWrapWidth(w - 40);
   }
 
@@ -305,6 +294,114 @@ export default class HUD extends Phaser.GameObjects.Container {
       this.yesText,
     ]);
     this.confirmBox = container;
+  }
+
+  createStoreMenu() {
+    const w = 250;
+    const h = 200;
+    const x = this.scene.cameras.main.width / 2;
+    const y = this.scene.cameras.main.height / 2;
+
+    this.storeBox = this.scene.add
+      .container(x, y)
+      .setDepth(102)
+      .setScrollFactor(0);
+    this.storeBox.setVisible(false);
+
+    const topLeft = this.scene.add
+      .image(-w / 2, -h / 2, "hudContainer", "dialog_topleft")
+      .setOrigin(0);
+    const top = this.scene.add
+      .image(-w / 2 + 16, -h / 2, "hudContainer", "dialog_top")
+      .setDisplaySize(w - 32, 16);
+    const topRight = this.scene.add
+      .image(w / 2, -h / 2, "hudContainer", "dialog_topright")
+      .setOrigin(1, 0);
+    const left = this.scene.add
+      .image(-w / 2, -h / 2 + 16, "hudContainer", "dialog_left")
+      .setDisplaySize(16, h - 32)
+      .setOrigin(0);
+    const center = this.scene.add
+      .image(-w / 2 + 16, -h / 2 + 16, "hudContainer", "dialog_center")
+      .setDisplaySize(w - 32, h - 32)
+      .setOrigin(0);
+    const right = this.scene.add
+      .image(w / 2, -h / 2 + 16, "hudContainer", "dialog_right")
+      .setDisplaySize(16, h - 32)
+      .setOrigin(1, 0);
+    const bottomLeft = this.scene.add
+      .image(-w / 2, h / 2, "hudContainer", "dialog_bottomleft")
+      .setOrigin(0, 1);
+    const bottom = this.scene.add
+      .image(-w / 2 + 16, h / 2, "hudContainer", "dialog_bottom")
+      .setDisplaySize(w - 32, 16)
+      .setOrigin(0, 1);
+    const bottomRight = this.scene.add
+      .image(w / 2, h / 2, "hudContainer", "dialog_bottomright")
+      .setOrigin(1, 1);
+
+    this.storeText = this.scene.add
+      .text(0, -70, "Loja:", {
+        fontSize: "12px",
+        color: "#ffffff",
+        align: "center",
+      })
+      .setOrigin(0.5);
+
+    let startY = -30;
+    for (let i = 0; i < this.storeOptions.length; i++) {
+      let opt = this.scene.add
+        .text(0, startY + i * 30, this.storeOptions[i], {
+          fontSize: "10px",
+          color: "#ffffff",
+        })
+        .setOrigin(0.5);
+      this.storeOptionTexts.push(opt);
+    }
+
+    this.storeBox.add([
+      topLeft,
+      top,
+      topRight,
+      left,
+      center,
+      right,
+      bottomLeft,
+      bottom,
+      bottomRight,
+      this.storeText,
+      ...this.storeOptionTexts,
+    ]);
+  }
+
+  highlightStoreOption(index) {
+    for (let i = 0; i < this.storeOptionTexts.length; i++) {
+      if (i === index) {
+        this.storeOptionTexts[i].setColor("#00ff00");
+      } else {
+        this.storeOptionTexts[i].setColor("#ffffff");
+      }
+    }
+  }
+
+  openStoreMenu() {
+    this.selectedStoreOption = 0;
+    this.storeBox.setVisible(true);
+    this.highlightStoreOption(this.selectedStoreOption);
+  }
+
+  closeStoreMenu() {
+    this.storeBox.setVisible(false);
+  }
+
+  moveStoreSelection(dir) {
+    // dir=1 down, dir=-1 up
+    this.selectedStoreOption += dir;
+    if (this.selectedStoreOption < 0)
+      this.selectedStoreOption = this.storeOptions.length - 1;
+    if (this.selectedStoreOption >= this.storeOptions.length)
+      this.selectedStoreOption = 0;
+    this.highlightStoreOption(this.selectedStoreOption);
   }
 
   updateHUD({
