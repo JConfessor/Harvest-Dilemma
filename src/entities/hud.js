@@ -9,19 +9,16 @@ export default class HUD extends Phaser.GameObjects.Container {
   soilQuality = "100%";
   dinheiro = 0;
 
-  // Textos do HUD principal
   beterrabaTxt;
   cenouraTxt;
   tomateTxt;
   laranjaTxt;
   dinheiroTxt;
-  soilTxt; // Saúde do Solo
+  soilTxt;
 
-  // Caixa de diálogo simples (mensagem)
   dialogBox;
   dialogText;
 
-  // Caixa de confirmação com opções
   confirmBox;
   confirmText;
   yesText;
@@ -30,7 +27,7 @@ export default class HUD extends Phaser.GameObjects.Container {
   constructor(scene, x, y) {
     super(scene, x, y);
     scene.add.existing(this);
-    this.setScrollFactor(0); // HUD fixo na tela
+    this.setScrollFactor(0);
 
     this.createHud();
     this.createDialogBox();
@@ -38,8 +35,6 @@ export default class HUD extends Phaser.GameObjects.Container {
   }
 
   createHud() {
-    console.log("HUD Criado");
-
     this.conteudo = this.add(new Phaser.GameObjects.Container(this.scene));
     this.conteudo.setDepth(10);
     this.conteudo.setScrollFactor(0);
@@ -84,7 +79,6 @@ export default class HUD extends Phaser.GameObjects.Container {
         "dialog_bottomright"
       ),
 
-      // Frutas e valores
       this.scene.add.image(23, 23, "hud", "beterraba.png"),
       (this.beterrabaTxt = this.scene.add.text(33, 18, "0")),
       this.scene.add.image(55, 23, "hud", "cenoura.png"),
@@ -93,11 +87,9 @@ export default class HUD extends Phaser.GameObjects.Container {
       (this.tomateTxt = this.scene.add.text(97, 18, "0")),
       this.scene.add.image(119, 23, "hud", "laranja.png"),
       (this.laranjaTxt = this.scene.add.text(129, 18, "0")),
-      // Saúde do Solo:
       (this.soilTxt = this.scene.add.text(20, 55, "Saúde do Solo: 100%", {
         fontSize: "10px",
       })),
-      // Moedas
       this.scene.add
         .image(155, 33, "hud", "coin_16.png")
         .setDisplaySize(16, 16),
@@ -106,18 +98,33 @@ export default class HUD extends Phaser.GameObjects.Container {
   }
 
   createDialogBox() {
+    // A caixa inicia com um tamanho fixo mas será ajustada após definir o texto.
     const w = 200;
     const h = 60;
 
-    // Ajustar para parte superior direita:
     const x = this.scene.cameras.main.width - w / 2 - 10;
-    const y = 30; // um pouco abaixo do topo
+    const y = 30;
 
     const container = this.scene.add
       .container(x, y)
       .setDepth(100)
       .setScrollFactor(0);
     container.setVisible(false);
+
+    // Criando bordas
+    this.dialogBG = {
+      w,
+      h,
+      topLeft: null,
+      top: null,
+      topRight: null,
+      left: null,
+      center: null,
+      right: null,
+      bottomLeft: null,
+      bottom: null,
+      bottomRight: null,
+    };
 
     const topLeft = this.scene.add
       .image(-w / 2, -h / 2, "hudContainer", "dialog_topleft")
@@ -172,11 +179,58 @@ export default class HUD extends Phaser.GameObjects.Container {
       bottomRight,
       this.dialogText,
     ]);
+
+    this.dialogBoxElements = {
+      topLeft,
+      top,
+      topRight,
+      left,
+      center,
+      right,
+      bottomLeft,
+      bottom,
+      bottomRight,
+    };
     this.dialogBox = container;
   }
 
+  adjustDialogBoxSize() {
+    // Ajustar o tamanho da caixa após definir o texto, baseado na altura do texto
+    const padding = 40; // algum padding
+    let textHeight = this.dialogText.getBounds().height;
+    let textWidth = this.dialogText.getBounds().width;
+
+    const w = Math.max(200, textWidth + 60);
+    const h = Math.max(60, textHeight + padding);
+
+    const {
+      topLeft,
+      top,
+      topRight,
+      left,
+      center,
+      right,
+      bottomLeft,
+      bottom,
+      bottomRight,
+    } = this.dialogBoxElements;
+
+    // Redimensionar as partes da caixa
+    topLeft.setPosition(-w / 2, -h / 2);
+    top.setPosition(-w / 2 + 16, -h / 2).setDisplaySize(w - 32, 16);
+    topRight.setPosition(w / 2, -h / 2);
+    left.setPosition(-w / 2, -h / 2 + 16).setDisplaySize(16, h - 32);
+    center.setPosition(-w / 2 + 16, -h / 2 + 16).setDisplaySize(w - 32, h - 32);
+    right.setPosition(w / 2, -h / 2 + 16).setDisplaySize(16, h - 32);
+    bottomLeft.setPosition(-w / 2, h / 2);
+    bottom.setPosition(-w / 2 + 16, h / 2).setDisplaySize(w - 32, 16);
+    bottomRight.setPosition(w / 2, h / 2);
+
+    // Recentralizar texto
+    this.dialogText.setWordWrapWidth(w - 40);
+  }
+
   createConfirmDialog() {
-    // Caixa de confirmação com opções "Não" e "Sim"
     const w = 220;
     const h = 180;
     const x = this.scene.cameras.main.width / 2;
@@ -229,7 +283,6 @@ export default class HUD extends Phaser.GameObjects.Container {
       })
       .setOrigin(0.5);
 
-    // Opções "Não" e "Sim"
     this.noText = this.scene.add
       .text(-30, 60, "Não", { fontSize: "10px", color: "#ffffff" })
       .setOrigin(0.5);
@@ -279,10 +332,11 @@ export default class HUD extends Phaser.GameObjects.Container {
   }
 
   showDialogMessage(text) {
-    // Mostra caixa de dialogo no canto superior direito
     this.dialogText.setText(text);
     this.dialogBox.setVisible(true);
-
+    this.scene.time.delayedCall(10, () => {
+      this.adjustDialogBoxSize();
+    });
     this.scene.time.delayedCall(3000, () => {
       this.dialogBox.setVisible(false);
     });
@@ -291,7 +345,7 @@ export default class HUD extends Phaser.GameObjects.Container {
   showConfirmDialog(text) {
     this.confirmText.setText(text);
     this.confirmBox.setVisible(true);
-    this.highlightConfirmOption(0); // inicia em "Não"
+    this.highlightConfirmOption(0);
   }
 
   highlightConfirmOption(index) {

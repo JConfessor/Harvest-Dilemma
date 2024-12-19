@@ -2,13 +2,10 @@ import { Scene } from "phaser";
 import { CONFIG } from "../config";
 import Player from "../entities/Player";
 import Touch from "../entities/Touch";
-import Fazenda from "./Fazenda";
 import HUD from "../entities/hud";
 
 export default class Casa extends Scene {
   map;
-  cena = 0;
-
   layers = {};
   player;
   touch;
@@ -18,28 +15,46 @@ export default class Casa extends Scene {
   cenoura = 0;
   tomate = 0;
   laranja = 0;
-  sucoBet = 0;
-  sucoCen = 0;
-  sucoTom = 0;
-  sucoLar = 0;
   dinheiro = 0;
 
-  venda = true;
-
   hud;
+  venda = true;
 
   constructor() {
     super("Casa");
   }
 
+  preload() {
+    // Carregar assets se necessário
+  }
+
   create() {
     this.createMap();
     this.createLayers();
+    this.loadDataFromRegistry();
     this.createPlayer();
     this.createObjects();
     this.createColliders();
     this.createCamera();
     this.createHud();
+
+    this.events.on("wake", this.loadDataFromRegistry, this);
+  }
+
+  loadDataFromRegistry() {
+    this.beterraba = this.registry.get("beterraba") || 0;
+    this.cenoura = this.registry.get("cenoura") || 0;
+    this.tomate = this.registry.get("tomate") || 0;
+    this.laranja = this.registry.get("laranja") || 0;
+    this.dinheiro = this.registry.get("dinheiro") || 0;
+  }
+
+  saveDataToRegistry() {
+    this.registry.set("beterraba", this.beterraba);
+    this.registry.set("cenoura", this.cenoura);
+    this.registry.set("tomate", this.tomate);
+    this.registry.set("laranja", this.laranja);
+    this.registry.set("dinheiro", this.dinheiro);
   }
 
   createPlayer() {
@@ -51,20 +66,14 @@ export default class Casa extends Scene {
   createObjects(name) {
     this.groupObjects = this.physics.add.group();
 
-    const objects = this.map.createFromObjects("Objetos", {
-      name: name,
-    });
-
+    const objects = this.map.createFromObjects("Objetos", { name: name });
     this.physics.world.enable(objects);
 
     for (let i = 0; i < objects.length; i++) {
       const obj = objects[i];
-      const prop = this.map.objects[0].objects[i];
-
       obj.setDepth(this.layers.length + 1);
       obj.setVisible(false);
       obj.body.immovable = true;
-
       this.groupObjects.add(obj);
     }
   }
@@ -84,21 +93,11 @@ export default class Casa extends Scene {
 
     for (let i = 0; i < layerNames.length; i++) {
       const name = layerNames[i];
-
       this.layers[name] = this.map.createLayer(name, [tilesFazenda], 0, 0);
       this.layers[name].setDepth(i);
 
       if (name.endsWith("collision")) {
         this.layers[name].setCollisionByProperty({ collide: true });
-
-        if (CONFIG.DEBUG_COLLISION) {
-          const debugGraphics = this.add.graphics().setAlpha(0.75).setDepth(i);
-          this.layers[name].renderDebug(debugGraphics, {
-            tileColor: null,
-            collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255),
-            faceColor: new Phaser.Display.Color(40, 39, 37, 255),
-          });
-        }
       }
     }
   }
@@ -113,13 +112,23 @@ export default class Casa extends Scene {
 
   createHud() {
     this.hud = new HUD(this, this.cameras.main.x - 10, -10);
+    this.events.on(Phaser.Scenes.Events.UPDATE, () => {
+      this.hud.updateHUD({
+        beterraba: this.beterraba,
+        cenoura: this.cenoura,
+        tomate: this.tomate,
+        laranja: this.laranja,
+        terreno: 0,
+        soilQuality: "100%", // Aqui não mudamos o solo da Casa, mas poderia
+        dinheiro: this.dinheiro,
+      });
+    });
   }
 
   createColliders() {
     const layerNames = this.map.getTileLayerNames();
     for (let i = 0; i < layerNames.length; i++) {
       const name = layerNames[i];
-
       if (name.endsWith("collision")) {
         this.physics.add.collider(this.player, this.layers[name]);
       }
@@ -149,103 +158,30 @@ export default class Casa extends Scene {
 
       if (object.name == "sair") {
         this.venda = true;
+        // Ao sair, salva dados
+        this.saveDataToRegistry();
         this.scene.sleep("Casa");
         this.scene.run("Fazenda");
       }
 
-      switch (object.name) {
-        case "beterraba":
-          this.sucoBet = this.beterraba;
-          this.hud.sucoBet = this.beterraba;
-          this.beterraba = 0;
-          this.hud.beterraba = this.beterraba;
-          break;
-
-        case "cenoura":
-          this.sucoCen = this.cenoura;
-          this.hud.sucoCen = this.sucoCen;
-          this.cenoura = 0;
-          this.hud.cenoura = this.cenoura;
-          break;
-
-        case "tomate":
-          this.sucoTom = this.tomate;
-          this.hud.sucoTom = this.sucoTom;
-          this.tomate = 0;
-          this.hud.tomate = this.tomate;
-          break;
-
-        case "laranja":
-          this.sucoLar = this.laranja;
-          this.hud.sucoLar = this.sucoLar;
-          this.laranja = 0;
-          this.hud.laranja = this.laranja;
-          break;
-      }
-
+      // Exemplo: vender itens
       if (object.name == "vender") {
-        this.dinheiro =
-          this.dinheiro +
-          this.beterraba +
-          this.cenoura +
-          this.tomate +
-          this.laranja +
-          this.sucoBet * 2 +
-          this.sucoCen * 2 +
-          this.sucoTom * 2 +
-          this.sucoLar * 2;
-
+        // vende todos os itens por valor arbitrário (ex: 1 por item)
+        let total = this.beterraba + this.cenoura + this.tomate + this.laranja;
+        this.dinheiro += total;
         this.beterraba = 0;
         this.cenoura = 0;
         this.tomate = 0;
         this.laranja = 0;
-        this.sucoBet = 0;
-        this.sucoCen = 0;
-        this.sucoTom = 0;
-        this.sucoLar = 0;
-
-        this.hud.beterraba = this.beterraba;
-        this.hud.tomate = this.tomate;
-        this.hud.laranja = this.laranja;
-        this.hud.cenoura = this.cenoura;
-        this.hud.sucoBet = this.sucoBet;
-        this.hud.sucoCen = this.sucoCen;
-        this.hud.sucoTom = this.sucoTom;
-        this.hud.sucoLar = this.sucoLar;
-        this.hud.dinheiro = this.dinheiro;
+        this.saveDataToRegistry();
+        this.hud.showDialogMessage(`Itens vendidos! +${total} moedas.`);
       }
-    }
 
-    if (object.name == "atualizar" && this.venda) {
-      let fazendaBeterraba = this.scene.get("Fazenda").beterraba;
-      let fazendaCenoura = this.scene.get("Fazenda").cenoura;
-      let fazendatomate = this.scene.get("Fazenda").tomate;
-      let fazendalaranja = this.scene.get("Fazenda").laranja;
-
-      fazendaBeterraba > this.beterraba
-        ? (this.beterraba = fazendaBeterraba)
-        : this.beterraba + 0;
-      fazendaCenoura > this.cenoura
-        ? (this.cenoura = fazendaCenoura)
-        : this.cenoura + 0;
-      fazendatomate > this.tomate
-        ? (this.tomate = fazendatomate)
-        : this.tomate + 0;
-      fazendalaranja > this.laranja
-        ? (this.laranja = fazendalaranja)
-        : this.laranja + 0;
-
-      this.hud.beterraba = this.beterraba;
-      this.hud.tomate = this.tomate;
-      this.hud.laranja = this.laranja;
-      this.hud.cenoura = this.cenoura;
-      this.hud.sucoBet = this.sucoBet;
-      this.hud.sucoCen = this.sucoCen;
-      this.hud.sucoTom = this.sucoTom;
-      this.hud.sucoLar = this.sucoLar;
-      this.hud.dinheiro = this.dinheiro;
-
-      this.venda = false;
+      if (object.name == "atualizar" && this.venda) {
+        // atualiza hud com dados do registry
+        this.loadDataFromRegistry();
+        this.venda = false;
+      }
     }
   }
 }

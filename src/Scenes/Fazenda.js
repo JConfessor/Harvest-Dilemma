@@ -36,10 +36,6 @@ export default class Fazenda extends Scene {
   cenoura = 0;
   tomate = 0;
   laranja = 0;
-  sucoBet = 0;
-  sucoCen = 0;
-  sucoTom = 0;
-  sucoLar = 0;
   dinheiro = 0;
   terreno = 0;
   soilQuality = 100;
@@ -47,6 +43,8 @@ export default class Fazenda extends Scene {
   confirmMode = false;
   confirmCallback = null;
   selectedOption = 0; // 0 = Não, 1 = Sim
+
+  autoRegarColher = false; // Módulo de regar/colher automático
 
   constructor() {
     super("Fazenda");
@@ -92,8 +90,7 @@ export default class Fazenda extends Scene {
   create() {
     this.createMapFazenda();
     this.createLayersFazenda();
-
-    this.loadDataFromRegistry(); // Carregar dados do registry
+    this.loadDataFromRegistry();
 
     this.createPlayer();
     this.createTree();
@@ -107,6 +104,9 @@ export default class Fazenda extends Scene {
     this.enterKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.ENTER
     );
+    this.gKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.G);
+
+    this.events.on("wake", this.loadDataFromRegistry, this);
   }
 
   update(time, delta) {
@@ -141,6 +141,10 @@ export default class Fazenda extends Scene {
       }
     }
 
+    if (Phaser.Input.Keyboard.JustDown(this.gKey)) {
+      this.buyAutoRegarColher();
+    }
+
     this.input.keyboard.once("keydown-E", () => {
       this.regando = true;
     });
@@ -158,17 +162,29 @@ export default class Fazenda extends Scene {
     }, 1000);
   }
 
+  buyAutoRegarColher() {
+    if (this.dinheiro >= 1000) {
+      this.dinheiro -= 1000;
+      this.autoRegarColher = true;
+      this.hud.showDialogMessage(
+        "Módulo de rega/colheita automática adquirido!\nPlantas serão cuidadas automaticamente."
+      );
+      this.saveDataToRegistry();
+    } else {
+      this.hud.showDialogMessage(
+        "Dinheiro insuficiente para comprar rega/colheita automática."
+      );
+    }
+  }
+
   loadDataFromRegistry() {
     this.beterraba = this.registry.get("beterraba") || 0;
     this.cenoura = this.registry.get("cenoura") || 0;
     this.tomate = this.registry.get("tomate") || 0;
     this.laranja = this.registry.get("laranja") || 0;
     this.dinheiro = this.registry.get("dinheiro") || 0;
-    this.sucoBet = this.registry.get("sucoBet") || 0;
-    this.sucoCen = this.registry.get("sucoCen") || 0;
-    this.sucoTom = this.registry.get("sucoTom") || 0;
-    this.sucoLar = this.registry.get("sucoLar") || 0;
     this.soilQuality = this.registry.get("soilQuality") || 100;
+    this.autoRegarColher = this.registry.get("autoRegarColher") || false;
   }
 
   saveDataToRegistry() {
@@ -177,11 +193,8 @@ export default class Fazenda extends Scene {
     this.registry.set("tomate", this.tomate);
     this.registry.set("laranja", this.laranja);
     this.registry.set("dinheiro", this.dinheiro);
-    this.registry.set("sucoBet", this.sucoBet);
-    this.registry.set("sucoCen", this.sucoCen);
-    this.registry.set("sucoTom", this.sucoTom);
-    this.registry.set("sucoLar", this.sucoLar);
     this.registry.set("soilQuality", this.soilQuality);
+    this.registry.set("autoRegarColher", this.autoRegarColher);
   }
 
   createPlayer() {
@@ -323,7 +336,7 @@ export default class Fazenda extends Scene {
     this.confirmMode = true;
     this.selectedOption = 0;
     this.hud.showConfirmDialog(
-      `Semente de ${fruitName} obtida!\nUsar agrotóxico?\n(←/→ para escolher, ENTER para confirmar)`
+      `Semente de ${fruitName} obtida!\nUsar agrotóxico?\n(←/→ para escolher, ENTER p/ confirmar)`
     );
     this.hud.highlightConfirmOption(this.selectedOption);
 
@@ -332,24 +345,31 @@ export default class Fazenda extends Scene {
         this.selectedAgrotoxico = fruitName;
         this.degradeSoil(5);
         this.hud.showDialogMessage(
-          "Agrotóxico aplicado.\nImpacto ambiental negativo a longo prazo."
+          "Agrotóxico aplicado.\nSolo sofre danos a longo prazo."
         );
       } else {
         this.selectedAgrotoxico = null;
         this.degradeSoil(1);
         this.hud.showDialogMessage(
-          "Plantio orgânico.\nVocê ajuda a preservar o meio ambiente!"
+          "Plantio orgânico.\nPreserva o meio ambiente!"
         );
       }
       this.saveDataToRegistry();
     };
   }
 
-  handleTouch(touch, object) {
-    if (this.isTouching && this.player.isAction) {
-      return;
+  canPlant() {
+    if (this.soilQuality <= 0) {
+      this.hud.showDialogMessage(
+        "O solo está completamente degradado!\nNão é mais possível plantar."
+      );
+      return false;
     }
+    return true;
+  }
 
+  handleTouch(touch, object) {
+    if (this.isTouching && this.player.isAction) return;
     if (this.isTouching && !this.player.isAction) {
       this.isTouching = false;
       return;
@@ -360,11 +380,11 @@ export default class Fazenda extends Scene {
 
       if (object.name.startsWith("arvore")) {
         let name = object.name;
-        if (this.arvores[name].anim == false) {
+        if (!this.arvores[name].anim) {
           this.arvores[name].anim = true;
           this.laranja += 3;
           this.hud.showDialogMessage(
-            "Laranjas coletadas!\nUso sustentável dos recursos naturais."
+            "Laranjas coletadas!\nEconomia sustentável."
           );
           this.saveDataToRegistry();
         }
@@ -386,77 +406,75 @@ export default class Fazenda extends Scene {
         this.askAgrotoxico("cenoura");
       }
 
-      if (this.semente == "beterraba" && object.name == "plantacaoBeterraba") {
-        this.plantacao = new Plantacao(
-          this,
-          object.x,
-          object.y - 3,
-          "beterraba",
-          false,
-          this.getGrowthModifier("beterraba")
-        ).setDepth(3);
-        this.GroupPlant.add(this.plantacao);
-        this.hud.showDialogMessage(
-          "Beterraba plantada!\nAlimento saudável, solo protegido."
-        );
-        this.saveDataToRegistry();
-      }
+      // Plantar
+      if (this.semente && object.name.startsWith("plantacao")) {
+        if (!this.canPlant()) return;
+        let fruta = this.semente;
 
-      if (this.semente == "tomate" && object.name == "plantacaoTomate") {
         this.plantacao = new Plantacao(
           this,
           object.x,
           object.y - 3,
-          "tomate",
-          false,
-          this.getGrowthModifier("tomate")
+          fruta,
+          this.autoRegarColher, // se autoRegarColher=true, já consideramos a planta regada ou colhida quando pronto.
+          this.getGrowthModifier(fruta)
         ).setDepth(3);
-        this.GroupPlant.add(this.plantacao);
-        this.hud.showDialogMessage(
-          "Tomate plantado!\nVocê colabora com a sustentabilidade."
-        );
-        this.saveDataToRegistry();
-      }
 
-      if (this.semente == "cenoura" && object.name == "plantacaoCenoura") {
-        this.plantacao = new Plantacao(
-          this,
-          object.x,
-          object.y - 3,
-          "cenoura",
-          false,
-          this.getGrowthModifier("cenoura")
-        ).setDepth(3);
+        // Se autoRegarColher = true, a planta já nasce regada, e podemos criar lógica para colher automaticamente quando pronta.
+        // A lógica completa de auto colheita pode ser dentro do Plantacao.js quando colheita = true, ou simplificar aqui.
+
         this.GroupPlant.add(this.plantacao);
         this.hud.showDialogMessage(
-          "Cenoura plantada!\nProdução orgânica é o futuro."
+          `${
+            fruta.charAt(0).toUpperCase() + fruta.slice(1)
+          } plantada!\nRecursos sustentáveis garantem o futuro.`
         );
         this.saveDataToRegistry();
       }
 
       if (object.name == "atualizar" && this.atualizarDinheiro) {
-        // Atualiza dados da casa no registry
-        let casa = this.scene.get("Casa");
-        this.beterraba = casa.beterraba;
-        this.cenoura = casa.cenoura;
-        this.tomate = casa.tomate;
-        this.laranja = casa.laranja;
-        this.sucoBet = casa.sucoBet;
-        this.sucoCen = casa.sucoCen;
-        this.sucoTom = casa.sucoTom;
-        this.sucoLar = casa.sucoLar;
-        this.dinheiro = casa.dinheiro;
-
-        this.saveDataToRegistry();
+        // Ao voltar da casa, Casa já terá atualizado o registry.
+        this.loadDataFromRegistry();
         this.atualizarDinheiro = false;
       }
     }
   }
 
   handleTouchPlantas(touch, planta) {
+    if (this.autoRegarColher) {
+      // Se autoRegarColher = true, planta já nasce regada (definimos no Plantacao)
+      // Ao ficar pronta, podemos colher automaticamente sem apertar nada, mas isso teria que ser no Plantacao.js quando vira colheita.
+      // Aqui, se o jogador tocar:
+      if (this.player.colher && planta.colheita) {
+        planta.destroy();
+        switch (planta.fruta) {
+          case "cenoura":
+            this.cenoura++;
+            this.hud.showDialogMessage(
+              "Cenoura colhida automaticamente!\nSem esforço, mas cuidado com o solo."
+            );
+            break;
+          case "beterraba":
+            this.beterraba++;
+            this.hud.showDialogMessage(
+              "Beterraba colhida automaticamente!\nTecnologia a favor da natureza."
+            );
+            break;
+          case "tomate":
+            this.tomate++;
+            this.hud.showDialogMessage(
+              "Tomate colhido automaticamente!\nMenos trabalho, mas mantenha o solo saudável."
+            );
+            break;
+        }
+        this.saveDataToRegistry();
+      }
+      return;
+    }
+
     if (this.player.regar && !planta.regada) {
       planta.regada = true;
-      this.hud.showDialogMessage("Planta regada!\nÁgua limpa, solo forte!");
+      this.hud.showDialogMessage("Planta regada!\nRecarga de vida ao solo.");
       this.saveDataToRegistry();
     }
 
@@ -466,19 +484,19 @@ export default class Fazenda extends Scene {
         case "cenoura":
           this.cenoura++;
           this.hud.showDialogMessage(
-            "Cenoura colhida!\nNutrição para você, sem danos ambientais."
+            "Cenoura colhida!\nSuprimento fresco e responsável."
           );
           break;
         case "beterraba":
           this.beterraba++;
           this.hud.showDialogMessage(
-            "Beterraba colhida!\nAlimento fresco e sustentável."
+            "Beterraba colhida!\nAgricultura consciente."
           );
           break;
         case "tomate":
           this.tomate++;
           this.hud.showDialogMessage(
-            "Tomate colhido!\nBom para você, bom para a natureza."
+            "Tomate colhido!\nAlimento puro, sem agrotóxicos."
           );
           break;
       }
@@ -487,10 +505,7 @@ export default class Fazenda extends Scene {
   }
 
   handleTouchVaca(touch, vaca) {
-    if (this.isTouching && this.player.isAction) {
-      return;
-    }
-
+    if (this.isTouching && this.player.isAction) return;
     if (this.isTouching && !this.player.isAction) {
       this.isTouching = false;
       return;
@@ -504,7 +519,7 @@ export default class Fazenda extends Scene {
           if (this.vacas[i].name == "araponga") {
             this.vacas[i].anim = true;
             this.hud.showDialogMessage(
-              "A vaca Araponga está feliz!\nBem-estar animal faz parte da sustentabilidade."
+              "A vaca Araponga está feliz!\nBem-estar animal é essencial."
             );
             this.saveDataToRegistry();
           }
@@ -516,7 +531,7 @@ export default class Fazenda extends Scene {
           if (this.vacas[i].name == "mimosa") {
             this.vacas[i].anim = true;
             this.hud.showDialogMessage(
-              "A vaca Mimosa está contente!\nAmbiente saudável = animais saudáveis."
+              "A vaca Mimosa está contente!\nEquilíbrio entre fauna e flora."
             );
             this.saveDataToRegistry();
           }
