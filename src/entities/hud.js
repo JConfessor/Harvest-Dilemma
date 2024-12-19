@@ -18,7 +18,7 @@ export default class HUD extends Phaser.GameObjects.Container {
 
   dialogBox;
   dialogText;
-  dialogBoxElements; // Armazena referências às partes da caixa de diálogo
+  dialogBoxElements;
 
   confirmBox;
   confirmText;
@@ -30,6 +30,8 @@ export default class HUD extends Phaser.GameObjects.Container {
   storeOptions = [
     "Auto regar/colher (1000 moedas)",
     "Cuidar do solo +10% (250 moedas)",
+    "Adubo especial +5% solo (150 moedas)",
+    "Sementes especiais (200 moedas)",
     "Fechar",
   ];
   selectedStoreOption = 0;
@@ -50,6 +52,7 @@ export default class HUD extends Phaser.GameObjects.Container {
     const tile = CONFIG.TILE_SIZE;
     const widthDialog = 175;
     const heightDialog = 2 * tile;
+    const hudFont = { fontSize: "12px", color: "#ffffff" };
 
     this.conteudo = this.add(new Phaser.GameObjects.Container(this.scene));
     this.conteudo.setDepth(10);
@@ -92,20 +95,23 @@ export default class HUD extends Phaser.GameObjects.Container {
       ),
 
       this.scene.add.image(23, 23, "hud", "beterraba.png"),
-      (this.beterrabaTxt = this.scene.add.text(33, 18, "0")),
+      (this.beterrabaTxt = this.scene.add.text(33, 18, "0", hudFont)),
       this.scene.add.image(55, 23, "hud", "cenoura.png"),
-      (this.cenouraTxt = this.scene.add.text(65, 18, "0")),
+      (this.cenouraTxt = this.scene.add.text(65, 18, "0", hudFont)),
       this.scene.add.image(87, 23, "hud", "tomate.png"),
-      (this.tomateTxt = this.scene.add.text(97, 18, "0")),
+      (this.tomateTxt = this.scene.add.text(97, 18, "0", hudFont)),
       this.scene.add.image(119, 23, "hud", "laranja.png"),
-      (this.laranjaTxt = this.scene.add.text(129, 18, "0")),
-      (this.soilTxt = this.scene.add.text(20, 55, "Saúde do Solo: 100%", {
-        fontSize: "10px",
-      })),
+      (this.laranjaTxt = this.scene.add.text(129, 18, "0", hudFont)),
+      (this.soilTxt = this.scene.add.text(
+        20,
+        55,
+        "Saúde do Solo: 100%",
+        hudFont
+      )),
       this.scene.add
         .image(155, 33, "hud", "coin_16.png")
         .setDisplaySize(16, 16),
-      (this.dinheiroTxt = this.scene.add.text(165, 27, "0")),
+      (this.dinheiroTxt = this.scene.add.text(165, 27, "0", hudFont)),
     ]);
   }
 
@@ -174,7 +180,6 @@ export default class HUD extends Phaser.GameObjects.Container {
       bottomRight,
       this.dialogText,
     ]);
-
     this.dialogBoxElements = {
       topLeft,
       top,
@@ -297,8 +302,9 @@ export default class HUD extends Phaser.GameObjects.Container {
   }
 
   createStoreMenu() {
+    // Ajustar altura da loja para caber todas as opções (5 itens)
     const w = 250;
-    const h = 200;
+    const h = 230;
     const x = this.scene.cameras.main.width / 2;
     const y = this.scene.cameras.main.height / 2;
 
@@ -395,7 +401,6 @@ export default class HUD extends Phaser.GameObjects.Container {
   }
 
   moveStoreSelection(dir) {
-    // dir=1 down, dir=-1 up
     this.selectedStoreOption += dir;
     if (this.selectedStoreOption < 0)
       this.selectedStoreOption = this.storeOptions.length - 1;

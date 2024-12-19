@@ -28,8 +28,9 @@ export default class Fazenda extends Scene {
   selectedAgrotoxico = null;
   isTouching = false;
 
-  regando = false;
-  colhendo = false;
+  autoRegarColher = false;
+  specialSeeds = false;
+
   atualizarDinheiro = false;
 
   beterraba = 0;
@@ -44,9 +45,12 @@ export default class Fazenda extends Scene {
   confirmCallback = null;
   selectedOption = 0;
 
-  autoRegarColher = false;
+  storeMode = false;
 
-  storeMode = false; // Menu de compras aberto?
+  regarPressed = false;
+  colherPressed = false;
+  interactPressed = false;
+  plantarPressed = false;
 
   constructor() {
     super("Fazenda");
@@ -89,7 +93,6 @@ export default class Fazenda extends Scene {
     this.createLayersFazenda();
     this.loadDataFromRegistry();
 
-    // Se não havia dinheiro, inicia com 1500
     if (this.dinheiro === 0 && !this.registry.has("dinheiro")) {
       this.dinheiro = 1500;
     }
@@ -110,11 +113,28 @@ export default class Fazenda extends Scene {
     this.escKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.ESC
     );
+    this.interactKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SPACE
+    );
+    this.plantarKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.P
+    );
+    this.regarKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.R
+    );
+    this.colherKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.C
+    );
 
     this.events.on("wake", this.loadDataFromRegistry, this);
   }
 
   update(time, delta) {
+    this.regarPressed = Phaser.Input.Keyboard.JustDown(this.regarKey);
+    this.colherPressed = Phaser.Input.Keyboard.JustDown(this.colherKey);
+    this.interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
+    this.plantarPressed = Phaser.Input.Keyboard.JustDown(this.plantarKey);
+
     if (this.hud && this.hud.updateHUD) {
       this.hud.updateHUD({
         beterraba: this.beterraba,
@@ -171,22 +191,6 @@ export default class Fazenda extends Scene {
     if (Phaser.Input.Keyboard.JustDown(this.gKey)) {
       this.toggleStoreMenu();
     }
-
-    this.input.keyboard.once("keydown-E", () => {
-      this.regando = true;
-    });
-
-    setTimeout(() => {
-      this.regando = false;
-    }, 1000);
-
-    this.input.keyboard.once("keydown-R", () => {
-      this.colhendo = true;
-    });
-
-    setTimeout(() => {
-      this.colhendo = false;
-    }, 1000);
   }
 
   toggleStoreMenu() {
@@ -210,7 +214,7 @@ export default class Fazenda extends Scene {
   buyStoreItem() {
     const index = this.hud.selectedStoreOption;
     switch (index) {
-      case 0: // Auto regar/colher
+      case 0:
         if (this.dinheiro >= 1000) {
           this.dinheiro -= 1000;
           this.autoRegarColher = true;
@@ -220,7 +224,7 @@ export default class Fazenda extends Scene {
           this.hud.showDialogMessage("Moedas insuficientes!");
         }
         break;
-      case 1: // Cuidar do solo
+      case 1:
         if (this.dinheiro >= 250) {
           this.dinheiro -= 250;
           this.soilQuality += 10;
@@ -231,8 +235,30 @@ export default class Fazenda extends Scene {
           this.hud.showDialogMessage("Moedas insuficientes!");
         }
         break;
-      case 2: // Fechar
-        // Apenas fecha
+      case 2:
+        if (this.dinheiro >= 150) {
+          this.dinheiro -= 150;
+          this.soilQuality += 5;
+          if (this.soilQuality > 100) this.soilQuality = 100;
+          this.hud.showDialogMessage("Adubo especial aplicado! +5% saúde.");
+          this.saveDataToRegistry();
+        } else {
+          this.hud.showDialogMessage("Moedas insuficientes!");
+        }
+        break;
+      case 3:
+        if (this.dinheiro >= 200) {
+          this.dinheiro -= 200;
+          this.specialSeeds = true;
+          this.hud.showDialogMessage(
+            "Sementes especiais adquiridas!\nPróxima colheita +1 fruto."
+          );
+          this.saveDataToRegistry();
+        } else {
+          this.hud.showDialogMessage("Moedas insuficientes!");
+        }
+        break;
+      case 4:
         break;
     }
     this.closeStoreMenu();
@@ -246,6 +272,7 @@ export default class Fazenda extends Scene {
     this.dinheiro = this.registry.get("dinheiro") || 0;
     this.soilQuality = this.registry.get("soilQuality") || 100;
     this.autoRegarColher = this.registry.get("autoRegarColher") || false;
+    this.specialSeeds = this.registry.get("specialSeeds") || false;
   }
 
   saveDataToRegistry() {
@@ -256,6 +283,7 @@ export default class Fazenda extends Scene {
     this.registry.set("dinheiro", this.dinheiro);
     this.registry.set("soilQuality", this.soilQuality);
     this.registry.set("autoRegarColher", this.autoRegarColher);
+    this.registry.set("specialSeeds", this.specialSeeds);
   }
 
   createPlayer() {
@@ -423,135 +451,111 @@ export default class Fazenda extends Scene {
   }
 
   handleTouch(touch, object) {
-    if (this.isTouching && this.player.isAction) return;
-    if (this.isTouching && !this.player.isAction) {
-      this.isTouching = false;
+    if (this.confirmMode || this.storeMode) return;
+
+    if (object.name == "casa" && this.interactPressed) {
+      this.saveDataToRegistry();
+      this.scene.run("Casa");
+      this.scene.sleep("Fazenda");
+      this.cena = 1;
+      this.atualizarDinheiro = true;
       return;
     }
 
-    if (this.player.isAction && !this.confirmMode && !this.storeMode) {
-      this.isTouching = true;
+    if (object.name == "beterraba" && this.interactPressed) {
+      this.askAgrotoxico("beterraba");
+    } else if (object.name == "tomate" && this.interactPressed) {
+      this.askAgrotoxico("tomate");
+    } else if (object.name == "cenoura" && this.interactPressed) {
+      this.askAgrotoxico("cenoura");
+    }
 
-      if (object.name.startsWith("arvore")) {
-        let name = object.name;
-        if (!this.arvores[name].anim) {
-          this.arvores[name].anim = true;
-          this.laranja += 3;
-          this.hud.showDialogMessage(
-            "Laranjas coletadas!\nSustentabilidade em ação."
-          );
-          this.saveDataToRegistry();
-        }
+    if (
+      this.semente &&
+      object.name.startsWith("plantacao") &&
+      this.plantarPressed
+    ) {
+      if (!this.canPlant()) return;
+      let fruta = this.semente;
+      const growthModifier = this.getGrowthModifier(fruta);
+      this.plantacao = new Plantacao(
+        this,
+        object.x,
+        object.y - 3,
+        fruta,
+        this.autoRegarColher,
+        growthModifier,
+        this.specialSeeds
+      ).setDepth(3);
+      this.GroupPlant.add(this.plantacao);
+      this.hud.showDialogMessage(
+        `${
+          fruta.charAt(0).toUpperCase() + fruta.slice(1)
+        } plantada!\nFuturo verde.`
+      );
+      if (this.specialSeeds) {
+        this.specialSeeds = false;
       }
+      this.saveDataToRegistry();
+    }
 
-      if (object.name == "casa") {
-        this.saveDataToRegistry();
-        this.scene.run("Casa");
-        this.scene.sleep("Fazenda");
-        this.cena = 1;
-        this.atualizarDinheiro = true;
-      }
+    if (
+      object.name == "atualizar" &&
+      this.interactPressed &&
+      this.atualizarDinheiro
+    ) {
+      this.loadDataFromRegistry();
+      this.atualizarDinheiro = false;
+    }
 
-      if (object.name == "beterraba") {
-        this.askAgrotoxico("beterraba");
-      } else if (object.name == "tomate") {
-        this.askAgrotoxico("tomate");
-      } else if (object.name == "cenoura") {
-        this.askAgrotoxico("cenoura");
-      }
-
-      if (this.semente && object.name.startsWith("plantacao")) {
-        if (!this.canPlant()) return;
-        let fruta = this.semente;
-        this.plantacao = new Plantacao(
-          this,
-          object.x,
-          object.y - 3,
-          fruta,
-          this.autoRegarColher,
-          this.getGrowthModifier(fruta)
-        ).setDepth(3);
-        this.GroupPlant.add(this.plantacao);
+    if (object.name.startsWith("arvore") && this.interactPressed) {
+      let name = object.name;
+      if (!this.arvores[name].anim) {
+        this.arvores[name].anim = true;
+        this.laranja += 3;
         this.hud.showDialogMessage(
-          `${
-            fruta.charAt(0).toUpperCase() + fruta.slice(1)
-          } plantada!\nFuturo verde.`
+          "Laranjas coletadas!\nSustentabilidade em ação."
         );
         this.saveDataToRegistry();
-      }
-
-      if (object.name == "atualizar" && this.atualizarDinheiro) {
-        this.loadDataFromRegistry();
-        this.atualizarDinheiro = false;
       }
     }
   }
 
   handleTouchPlantas(touch, planta) {
+    if (this.confirmMode || this.storeMode) return;
+
+    // Se autoRegarColher está habilitado, o cuidado e colheita serão automáticos
     if (this.autoRegarColher) {
-      if (this.player.colher && planta.colheita) {
-        planta.destroy();
-        switch (planta.fruta) {
-          case "cenoura":
-            this.cenoura++;
-            this.hud.showDialogMessage(
-              "Cenoura auto-colhida!\nTecnologia a favor."
-            );
-            break;
-          case "beterraba":
-            this.beterraba++;
-            this.hud.showDialogMessage(
-              "Beterraba auto-colhida!\nConforto sustentável."
-            );
-            break;
-          case "tomate":
-            this.tomate++;
-            this.hud.showDialogMessage(
-              "Tomate auto-colhido!\nPraticidade e cuidado."
-            );
-            break;
-        }
-        this.saveDataToRegistry();
+      // Quando a planta estiver pronta (colheita = true), colhe automaticamente
+      if (planta.colheita) {
+        planta.realizarColheita();
       }
       return;
     }
 
-    if (this.player.regar && !planta.regada) {
+    // Se não é automático, o jogador precisa regar com E
+    if (Phaser.Input.Keyboard.JustDown(this.regarKey) && !planta.regada) {
       planta.regada = true;
       this.hud.showDialogMessage("Planta regada!\nVida ao solo.");
       this.saveDataToRegistry();
+
+      // Iniciar o ciclo de crescimento se a planta ainda não estiver plantada
+      if (!planta.plantado && planta.regada) {
+        planta.plantado = true;
+        planta.startGrowthCycle();
+      }
     }
 
-    if (this.player.colher && planta.colheita) {
-      planta.destroy();
-      switch (planta.fruta) {
-        case "cenoura":
-          this.cenoura++;
-          this.hud.showDialogMessage("Cenoura colhida!\nRiqueza natural.");
-          break;
-        case "beterraba":
-          this.beterraba++;
-          this.hud.showDialogMessage("Beterraba colhida!\nEnergia do solo.");
-          break;
-        case "tomate":
-          this.tomate++;
-          this.hud.showDialogMessage("Tomate colhido!\nNutrição orgânica.");
-          break;
-      }
-      this.saveDataToRegistry();
+    // Colher com R
+    if (Phaser.Input.Keyboard.JustDown(this.colherKey) && planta.colheita) {
+      planta.realizarColheita();
     }
   }
 
   handleTouchVaca(touch, vaca) {
-    if (this.isTouching && this.player.isAction) return;
-    if (this.isTouching && !this.player.isAction) {
-      this.isTouching = false;
-      return;
-    }
+    if (this.confirmMode || this.storeMode) return;
 
-    if (this.player.isAction && !this.confirmMode && !this.storeMode) {
-      this.isTouching = true;
-
+    if (this.interactPressed) {
       if (vaca.name == "araponga") {
         for (let i = 0; i < this.vacas.length; i++) {
           if (this.vacas[i].name == "araponga") {
