@@ -1,3 +1,5 @@
+// Arvores.js
+
 export default class Arvores extends Phaser.Physics.Arcade.Sprite {
   timerVazia = false;
   timerCrescimento = true;
@@ -8,8 +10,8 @@ export default class Arvores extends Phaser.Physics.Arcade.Sprite {
 
     this.anim = anim;
 
-    scene.add.existing(this); //criando a imagem que o jogador vê
-    scene.physics.add.existing(this); //criando o body da fisica
+    scene.add.existing(this);
+    scene.physics.add.existing(this);
 
     this.init();
   }
@@ -32,7 +34,6 @@ export default class Arvores extends Phaser.Physics.Arcade.Sprite {
   }
 
   update() {
-    //tempo do balanço
     if (this.anim && this.timerColheita) {
       this.play("balanco");
       this.timerColheita = false;
@@ -40,13 +41,11 @@ export default class Arvores extends Phaser.Physics.Arcade.Sprite {
         this.timerVazia = true;
       }, 2000);
     }
-    //estado inicial (cheio de frutas)
     if (!this.anim && this.timerColheita) {
       this.setTexture("arvore");
       this.setFrame(13);
     }
 
-    //arvore vazia (apos a colheita)
     if (this.timerVazia) {
       this.setTexture("arvore_vazia");
       this.setFrame(0);
@@ -56,7 +55,6 @@ export default class Arvores extends Phaser.Physics.Arcade.Sprite {
       }, 90000);
     }
 
-    //frutos crescendo
     if (!this.timerCrescimento) {
       this.setTexture("arvore");
       this.setFrame(12);

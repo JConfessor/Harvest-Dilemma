@@ -1,3 +1,5 @@
+// Fazenda.js
+
 import { AUTO, Scene } from "phaser";
 import { CONFIG } from "../config";
 import Player from "../entities/Player";
@@ -218,7 +220,9 @@ export default class Fazenda extends Scene {
         if (this.dinheiro >= 1000) {
           this.dinheiro -= 1000;
           this.autoRegarColher = true;
-          this.hud.showDialogMessage("Auto regar/colher adquirido!");
+          this.hud.showDialogMessage(
+            "Auto regar/colher adquirido!\nCuidado: não esqueça da saúde do solo."
+          );
           this.saveDataToRegistry();
         } else {
           this.hud.showDialogMessage("Moedas insuficientes!");
@@ -229,7 +233,9 @@ export default class Fazenda extends Scene {
           this.dinheiro -= 250;
           this.soilQuality += 10;
           if (this.soilQuality > 100) this.soilQuality = 100;
-          this.hud.showDialogMessage("Solo cuidado! +10% saúde.");
+          this.hud.showDialogMessage(
+            "Solo recuperado! +10% saúde.\nConservar é produzir a longo prazo."
+          );
           this.saveDataToRegistry();
         } else {
           this.hud.showDialogMessage("Moedas insuficientes!");
@@ -240,7 +246,9 @@ export default class Fazenda extends Scene {
           this.dinheiro -= 150;
           this.soilQuality += 5;
           if (this.soilQuality > 100) this.soilQuality = 100;
-          this.hud.showDialogMessage("Adubo especial aplicado! +5% saúde.");
+          this.hud.showDialogMessage(
+            "Adubo especial aplicado! +5% saúde.\nPequenos cuidados, grandes resultados."
+          );
           this.saveDataToRegistry();
         } else {
           this.hud.showDialogMessage("Moedas insuficientes!");
@@ -251,7 +259,7 @@ export default class Fazenda extends Scene {
           this.dinheiro -= 200;
           this.specialSeeds = true;
           this.hud.showDialogMessage(
-            "Sementes especiais adquiridas!\nPróxima colheita +1 fruto."
+            "Sementes especiais adquiridas!\nPróxima colheita mais produtiva.\nMas atenção ao equilíbrio ecológico."
           );
           this.saveDataToRegistry();
         } else {
@@ -409,7 +417,7 @@ export default class Fazenda extends Scene {
   }
 
   getGrowthModifier(fruit) {
-    return this.selectedAgrotoxico === fruit ? 0.25 : 1.0;
+    return this.selectedAgrotoxico === fruit ? 0.5 : 1.0;
   }
 
   degradeSoil(amount) {
@@ -422,7 +430,7 @@ export default class Fazenda extends Scene {
     this.confirmMode = true;
     this.selectedOption = 0;
     this.hud.showConfirmDialog(
-      `Semente de ${fruitName} obtida!\nUsar agrotóxico?`
+      `Semente de ${fruitName} obtida!\nUsar agrotóxico?\n(Agrotóxico: acelera, mas degrada o solo e impacta o meio ambiente.)`
     );
     this.hud.highlightConfirmOption(this.selectedOption);
 
@@ -431,12 +439,14 @@ export default class Fazenda extends Scene {
         this.selectedAgrotoxico = fruitName;
         this.degradeSoil(5);
         this.hud.showDialogMessage(
-          "Agrotóxico aplicado.\nLongo prazo: solo sofre."
+          "Agrotóxico aplicado.\nCrescimento rápido, mas solo e saúde comprometidos a longo prazo."
         );
       } else {
         this.selectedAgrotoxico = null;
         this.degradeSoil(1);
-        this.hud.showDialogMessage("Orgânico!\nAmbiente preservado.");
+        this.hud.showDialogMessage(
+          "Produção orgânica!\nMais lento, porém saudável e sustentável."
+        );
       }
       this.saveDataToRegistry();
     };
@@ -444,7 +454,9 @@ export default class Fazenda extends Scene {
 
   canPlant() {
     if (this.soilQuality <= 0) {
-      this.hud.showDialogMessage("Solo destruído.\nNão é possível plantar.");
+      this.hud.showDialogMessage(
+        "Solo destruído.\nNão é possível plantar. Regenerar o solo é necessário."
+      );
       return false;
     }
     return true;
@@ -462,12 +474,13 @@ export default class Fazenda extends Scene {
       return;
     }
 
-    if (object.name == "beterraba" && this.interactPressed) {
-      this.askAgrotoxico("beterraba");
-    } else if (object.name == "tomate" && this.interactPressed) {
-      this.askAgrotoxico("tomate");
-    } else if (object.name == "cenoura" && this.interactPressed) {
-      this.askAgrotoxico("cenoura");
+    if (
+      (object.name == "beterraba" ||
+        object.name == "tomate" ||
+        object.name == "cenoura") &&
+      this.interactPressed
+    ) {
+      this.askAgrotoxico(object.name);
     }
 
     if (
@@ -484,14 +497,13 @@ export default class Fazenda extends Scene {
         object.y - 3,
         fruta,
         this.autoRegarColher,
-        growthModifier,
-        this.specialSeeds
+        growthModifier
       ).setDepth(3);
       this.GroupPlant.add(this.plantacao);
       this.hud.showDialogMessage(
         `${
           fruta.charAt(0).toUpperCase() + fruta.slice(1)
-        } plantada!\nFuturo verde.`
+        } plantada!\nTempo e cuidado geram colheita saudável.`
       );
       if (this.specialSeeds) {
         this.specialSeeds = false;
@@ -514,7 +526,7 @@ export default class Fazenda extends Scene {
         this.arvores[name].anim = true;
         this.laranja += 3;
         this.hud.showDialogMessage(
-          "Laranjas coletadas!\nSustentabilidade em ação."
+          "Laranjas coletadas!\nLembre-se: a biodiversidade depende de práticas sustentáveis."
         );
         this.saveDataToRegistry();
       }
@@ -524,29 +536,24 @@ export default class Fazenda extends Scene {
   handleTouchPlantas(touch, planta) {
     if (this.confirmMode || this.storeMode) return;
 
-    // Se autoRegarColher está habilitado, o cuidado e colheita serão automáticos
     if (this.autoRegarColher) {
-      // Quando a planta estiver pronta (colheita = true), colhe automaticamente
       if (planta.colheita) {
         planta.realizarColheita();
       }
       return;
     }
 
-    // Se não é automático, o jogador precisa regar com E
     if (Phaser.Input.Keyboard.JustDown(this.regarKey) && !planta.regada) {
       planta.regada = true;
-      this.hud.showDialogMessage("Planta regada!\nVida ao solo.");
+      this.hud.showDialogMessage("Planta regada!\nPreservando a vida no solo.");
       this.saveDataToRegistry();
 
-      // Iniciar o ciclo de crescimento se a planta ainda não estiver plantada
       if (!planta.plantado && planta.regada) {
         planta.plantado = true;
         planta.startGrowthCycle();
       }
     }
 
-    // Colher com R
     if (Phaser.Input.Keyboard.JustDown(this.colherKey) && planta.colheita) {
       planta.realizarColheita();
     }
@@ -561,7 +568,7 @@ export default class Fazenda extends Scene {
           if (this.vacas[i].name == "araponga") {
             this.vacas[i].anim = true;
             this.hud.showDialogMessage(
-              "Vaca Araponga feliz!\nBem-estar animal."
+              "Vaca Araponga feliz!\nBem-estar animal também é sustentabilidade."
             );
             this.saveDataToRegistry();
           }
@@ -573,7 +580,7 @@ export default class Fazenda extends Scene {
           if (this.vacas[i].name == "mimosa") {
             this.vacas[i].anim = true;
             this.hud.showDialogMessage(
-              "Vaca Mimosa contente!\nHarmonia rural."
+              "Vaca Mimosa contente!\nHarmonia com a natureza."
             );
             this.saveDataToRegistry();
           }

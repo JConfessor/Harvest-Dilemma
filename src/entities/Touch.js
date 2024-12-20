@@ -1,3 +1,5 @@
+// Touch.js
+
 import { CONFIG } from "../config";
 
 export default class Touch extends Phaser.Physics.Arcade.Sprite {

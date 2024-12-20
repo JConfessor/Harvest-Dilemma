@@ -1,3 +1,5 @@
+// Player.js
+
 import { CONFIG } from "../config";
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
@@ -25,10 +27,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.frameRate = 8;
     this.direction = "down";
 
-    // Setas do teclado + tecla espaço (cursors)
     this.cursors = this.scene.input.keyboard.createCursorKeys();
 
-    // Define teclas para regar (R), colher (C) e plantar (P)
     this.keys = this.scene.input.keyboard.addKeys({
       regar: Phaser.Input.Keyboard.KeyCodes.R,
       colher: Phaser.Input.Keyboard.KeyCodes.C,
@@ -50,7 +50,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   update() {
     const { left, right, down, up, space } = this.cursors;
 
-    // Movimentação do jogador
     if (left.isDown) {
       this.setVelocityX(-this.speed);
       this.direction = "left";
@@ -71,13 +70,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       this.setVelocityY(0);
     }
 
-    // Ações
     this.regar = this.keys.regar.isDown;
     this.colher = this.keys.colher.isDown;
     this.plantar = this.keys.plantar.isDown;
-    this.isAction = space.isDown; // espaço para interagir (entrar na casa, etc.)
+    this.isAction = space.isDown;
 
-    // Escolha da animação de acordo com a ação
     if (this.regar) {
       this.play("regar-" + this.direction, true);
     } else if (this.colher) {
@@ -85,14 +82,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     } else if (this.plantar) {
       this.play("plantar-" + this.direction, true);
     } else if (this.body.velocity.x === 0 && this.body.velocity.y === 0) {
-      // Se não está se movendo, fica em idle
       this.play("idle-" + this.direction, true);
     } else {
-      // Movimento (andar)
       this.play("walk-" + this.direction, true);
     }
 
-    // Posiciona a área de interação ("touch") à frente do jogador
     let tx = 0,
       ty = 0,
       offset = CONFIG.TILE_SIZE / 3;
@@ -174,7 +168,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       repeat: -1,
     });
 
-    // Animações para plantar
     this.anims.create({
       key: "plantar-down",
       frames: this.anims.generateFrameNumbers("player", {
@@ -215,7 +208,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       repeat: 0,
     });
 
-    // Animações para colher
     this.anims.create({
       key: "colher-up",
       frames: this.anims.generateFrameNumbers("player", {
@@ -256,7 +248,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       repeat: -1,
     });
 
-    // Animações para regar
     this.anims.create({
       key: "regar-down",
       frames: this.anims.generateFrameNumbers("player", {

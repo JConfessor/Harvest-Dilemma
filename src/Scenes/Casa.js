@@ -1,3 +1,5 @@
+// Casa.js
+
 import { Scene } from "phaser";
 import { CONFIG } from "../config";
 import Player from "../entities/Player";
@@ -24,9 +26,7 @@ export default class Casa extends Scene {
     super("Casa");
   }
 
-  preload() {
-    // Carregar assets se necessário
-  }
+  preload() {}
 
   create() {
     this.createMap();
@@ -119,7 +119,7 @@ export default class Casa extends Scene {
         tomate: this.tomate,
         laranja: this.laranja,
         terreno: 0,
-        soilQuality: "100%", // Aqui não mudamos o solo da Casa, mas poderia
+        soilQuality: "100%",
         dinheiro: this.dinheiro,
       });
     });
@@ -158,27 +158,38 @@ export default class Casa extends Scene {
 
       if (object.name == "sair") {
         this.venda = true;
-        // Ao sair, salva dados
         this.saveDataToRegistry();
         this.scene.sleep("Casa");
         this.scene.run("Fazenda");
       }
 
-      // Exemplo: vender itens
+      // Preços individuais
+      const prices = {
+        beterraba: 3,
+        cenoura: 2,
+        tomate: 4,
+        laranja: 5,
+      };
+
       if (object.name == "vender") {
-        // vende todos os itens por valor arbitrário (ex: 1 por item)
-        let total = this.beterraba + this.cenoura + this.tomate + this.laranja;
+        let total =
+          this.beterraba * prices.beterraba +
+          this.cenoura * prices.cenoura +
+          this.tomate * prices.tomate +
+          this.laranja * prices.laranja;
+
         this.dinheiro += total;
         this.beterraba = 0;
         this.cenoura = 0;
         this.tomate = 0;
         this.laranja = 0;
         this.saveDataToRegistry();
-        this.hud.showDialogMessage(`Itens vendidos! +${total} moedas.`);
+        this.hud.showDialogMessage(
+          `Itens vendidos! +${total} moedas.\nReflita: produzir sem destruir é possível.`
+        );
       }
 
       if (object.name == "atualizar" && this.venda) {
-        // atualiza hud com dados do registry
         this.loadDataFromRegistry();
         this.venda = false;
       }

@@ -1,3 +1,5 @@
+// Vaca.js
+
 import { Math } from "phaser";
 export default class Vaca extends Phaser.Physics.Arcade.Sprite {
   aux = true;

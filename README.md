@@ -2,59 +2,82 @@
 
 ## Descrição
 
-Este é um jogo sério de fazenda onde o jogador aprende sobre sustentabilidade, uso de agrotóxicos, cuidado do solo e produção orgânica. O objetivo é plantar, colher, vender itens e gerenciar a saúde do solo, além de tomar decisões de compras que afetam o futuro da fazenda.
+"Harvest Dilemma" é um jogo sério focado em práticas agrícolas sustentáveis, uso responsável de agrotóxicos e manejo do solo. Nele, você controla um(a) fazendeiro(a) que precisa plantar, cuidar e colher diferentes culturas, vender a produção no cercado à direita da casa, e investir tanto na melhoria do solo quanto em insumos que podem facilitar a produção.
 
-## Controles
+A proposta é incentivar reflexões sobre a sustentabilidade, o equilíbrio entre economia e cuidado ambiental, e a importância da preservação da saúde do solo e do meio ambiente.
 
-- **Movimentação:** Use as setas do teclado (↑,↓,←,→) para mover o personagem.
-- **Regar (E):** Pressione a tecla **E** próximo a uma plantação para regar a planta.
-- **Colher (R):** Pressione a tecla **R** próximo a uma plantação pronta para colher.
-- **Plantar (P):** Ao obter uma semente, vá até um terreno de plantio e pressione **P** para plantar.
-- **Interagir (Espaço):** Ao estar próximo de objetos especiais (como entrar na casa), pressione espaço.
-- **Menu de Compras (G):** Pressione **G** para abrir/fechar a loja.
-  - Navegue com setas **↑/↓** para escolher a opção.
-  - Pressione **ENTER** para confirmar a compra.
-  - Pressione **ESC** para fechar a loja sem comprar.
+## Como Jogar
 
-## Funcionalidades
+### Movimentação e Interação
 
-- **Sementes e Agrotóxico:** Ao coletar uma semente (beterraba, tomate ou cenoura), você será perguntado se deseja usar agrotóxico (tecla direcional e ENTER no diálogo de confirmação).
+- **Movimento:** Use as setas do teclado (↑, ↓, ←, →) para mover o personagem.
+- **Interação (Espaço):** Ao estar próximo de um objeto ou local de interesse (casa, semente, área de venda), pressione **Espaço** para interagir.
 
-  - Agrotóxico acelera o crescimento (ciclo 4x mais rápido), mas degrada o solo.
-  - Orgânico mantém o solo saudável a longo prazo.
+### Coleta de Sementes e Agrotóxicos
 
-- **Auto Regar/Colher (1000 moedas):**  
-  Ao comprar essa melhoria na loja (G), suas plantações são automaticamente cuidadas e colhidas quando prontas, sem precisar apertar R ou regar manualmente.
+- **Coleta de Sementes:** As sementes ficam **acima de cada terreno de plantio**. Aproxime-se e pressione **Espaço** para obter a semente.
+- **Escolha sobre Agrotóxico:** **No momento em que você pega a semente**, surgirá um diálogo perguntando se deseja utilizar agrotóxicos ou não.
+  - **Usar Agrotóxico:** Acelera o crescimento da planta, mas degrada o solo.
+  - **Não Usar Agrotóxico (Orgânico):** Mantém o solo mais saudável a longo prazo, porém o crescimento é mais lento.
 
-- **Cuidar do Solo (250 moedas, +10%):**  
-  Recupera a saúde do solo em 10%. Solo saudável é essencial para continuar plantando. Se o solo chegar a 0%, não será mais possível plantar.
+### Plantar, Regar e Colher
 
-- **Adubo Especial (500 moedas, +5% solo):**  
-  Menos efetivo que cuidar do solo, porém ainda ajuda a recuperar um pouco a saúde do solo.
+- **Plantar (P):** Com a semente obtida, vá até o terreno designado para o plantio e pressione **P** para plantar.
+- **Regar (E):** Após plantar, aproxime-se da muda e pressione **E** para regar. Isso inicia o ciclo de crescimento.
+- **Colher (R):** Quando a planta estiver madura, pressione **R** próximo a ela para colher.
 
-- **Sementes Especiais (200 moedas):**  
-  A próxima colheita dará +1 fruto adicional, promovendo maior produtividade. Após uma plantação usando as sementes especiais, o efeito é consumido.
+#### Auto Regar/Colher
 
-- **Moedas e Economia:**
+Se você adquirir a melhoria de **Auto Regar/Colher** na loja, suas plantas serão automaticamente cuidadas e colhidas quando prontas, não sendo necessário apertar **E** ou **R**.
 
-  - Você começa com 1500 moedas se não tiver dado anterior.
-  - Ao colher frutos, seus estoques aumentam.
-  - Vá até a casa para vender (pressione espaço para entrar) e trocar itens por dinheiro.
-  - Use o dinheiro para comprar melhorias na loja (G).
+### Venda de Itens
 
-- **Saúde do Solo:**  
-  Mostrado no HUD. Se chegar a 0%, não é possível plantar. Use a loja para restaurar a saúde do solo.
+- A venda de itens ocorre **no cercado à direita da casa**. Aproxime-se e pressione **Espaço** para vender suas colheitas, obtendo moedas.
 
-- **Auto Regar/Colher:**  
-  Se comprado, assim que a planta ficar pronta, ela é colhida automaticamente.
+### Entrar na Casa
 
-## Dicas
+- Aproxime-se da casa e pressione **Espaço** para entrar, podendo gerenciar estoques, visualizar informações e dados do seu progresso.
 
-- Plantar organicamente mantém o solo saudável por mais tempo.
-- Usar agrotóxico acelera ganhos imediatos, mas degrada o solo, dificultando a produção no longo prazo.
-- Equilibre suas finanças e a saúde do solo com compras na loja.
-- Aproveite as sementes especiais para aumentar a produtividade de uma colheita crucial.
+### Menu de Compras (G)
 
-## Finalidade
+- Pressione **G** para abrir ou fechar a loja.
+- Use as setas **↑/↓** para navegar entre as opções e **ENTER** para confirmar a compra.
+- Pressione **ESC** para sair da loja sem comprar.
 
-Este jogo é um protótipo de um jogo sério, com o objetivo de ensinar conceitos de sustentabilidade, impacto ambiental do agrotóxico e importância do manejo adequado do solo.
+**Opções disponíveis:**
+
+- **Auto Regar/Colher (1000 moedas):** Automatiza o cuidado e a colheita das plantas.
+- **Cuidar do Solo (250 moedas, +10% solo):** Recupera significativamente a saúde do solo.
+- **Adubo Especial (500 moedas, +5% solo):** Melhora um pouco a saúde do solo.
+- **Sementes Especiais (200 moedas):** A próxima colheita rende frutos adicionais.
+
+### Economia e Solo
+
+- Você começa com 1500 moedas (caso não haja dados salvos).
+- Cada produto colhido possui um valor de venda específico.
+- O solo é afetado pelo uso de agrotóxicos e práticas agrícolas. Se chegar a 0% de saúde, não será mais possível plantar até que o solo seja recuperado via melhorias da loja.
+
+## Instalação
+
+1. Certifique-se de ter o [Node.js](https://nodejs.org/) instalado.
+2. Baixe ou clone o repositório do jogo.
+3. No diretório raiz do projeto, instale as dependências:
+   ```bash
+   npm install
+   ```
+4. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
+5. Abra o navegador no endereço indicado pelo terminal (ex: http://localhost:5173).
+
+## Dicas de Jogo
+
+- Escolha com cuidado o uso de agrotóxicos: eles aceleram resultados imediatos, mas podem tornar o solo estéril a longo prazo, exigindo gastos com recuperação.
+- Plantar organicamente é mais lento, mas mantém o solo fértil e reduz custos futuros.
+- Equilibre suas finanças entre melhorias, recuperação do solo e expansão da produção.
+- Aproveite as sementes especiais para aumentar a produção quando realmente precisar.
+
+## Objetivo Educacional
+
+"Harvest Dilemma" não é apenas um jogo de fazenda: é um jogo sério, cujo propósito é conscientizar sobre a complexidade da agricultura sustentável. Ao lidar com decisões sobre produção, uso de agrotóxicos, manejo do solo e economia agrária, o jogador compreende que a busca por lucro imediato deve ser equilibrada com a preservação ambiental e a saúde do solo.

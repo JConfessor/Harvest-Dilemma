@@ -1,3 +1,5 @@
+// hud.js
+
 import Phaser, { Scene } from "phaser";
 import { CONFIG } from "../config";
 
@@ -302,7 +304,6 @@ export default class HUD extends Phaser.GameObjects.Container {
   }
 
   createStoreMenu() {
-    // Ajustar altura da loja para caber todas as opções (5 itens)
     const w = 250;
     const h = 230;
     const x = this.scene.cameras.main.width / 2;
