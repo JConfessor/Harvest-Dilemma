@@ -2,7 +2,7 @@
 
 ## Descrição
 
-"Harvest Dilemma" é um jogo sério focado em práticas agrícolas sustentáveis, uso responsável de agrotóxicos e manejo do solo. Nele, você controla um(a) fazendeiro(a) que precisa plantar, cuidar e colher diferentes culturas, vender a produção no cercado à direita da casa, e investir tanto na melhoria do solo quanto em insumos que podem facilitar a produção.
+"Harvest Dilemma" é um jogo sério focado em práticas agrícolas sustentáveis, uso responsável de agrotóxicos e manejo do solo. Nele, você controla um(a) fazendeiro(Gato) que precisa plantar, cuidar e colher diferentes culturas, vender a produção no cercado à direita da casa, e investir tanto na melhoria do solo quanto em insumos que podem facilitar a produção.
 
 A proposta é incentivar reflexões sobre a sustentabilidade, o equilíbrio entre economia e cuidado ambiental, e a importância da preservação da saúde do solo e do meio ambiente.
 
