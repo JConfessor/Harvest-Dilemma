@@ -48,7 +48,7 @@ Se você adquirir a melhoria de **Auto Regar/Colher** na loja, suas plantas ser�
 
 - **Auto Regar/Colher (1000 moedas):** Automatiza o cuidado e a colheita das plantas.
 - **Cuidar do Solo (250 moedas, +10% solo):** Recupera significativamente a saúde do solo.
-- **Adubo Especial (500 moedas, +5% solo):** Melhora um pouco a saúde do solo.
+- **Adubo Especial (150 moedas, +5% solo):** Melhora um pouco a saúde do solo.
 - **Sementes Especiais (200 moedas):** A próxima colheita rende frutos adicionais.
 
 ### Economia e Solo
