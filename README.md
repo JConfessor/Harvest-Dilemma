@@ -23,8 +23,8 @@ A proposta é incentivar reflexões sobre a sustentabilidade, o equilíbrio entr
 ### Plantar, Regar e Colher
 
 - **Plantar (P):** Com a semente obtida, vá até o terreno designado para o plantio e pressione **P** para plantar.
-- **Regar (E):** Após plantar, aproxime-se da muda e pressione **E** para regar. Isso inicia o ciclo de crescimento.
-- **Colher (R):** Quando a planta estiver madura, pressione **R** próximo a ela para colher.
+- **Regar (R):** Após plantar, aproxime-se da muda e pressione **E** para regar. Isso inicia o ciclo de crescimento.
+- **Colher (C):** Quando a planta estiver madura, pressione **R** próximo a ela para colher.
 
 #### Auto Regar/Colher
 
